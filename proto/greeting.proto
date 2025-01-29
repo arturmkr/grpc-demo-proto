@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package demo;
+
+message GreetingRequest {
+  string name = 1;
+}
+
+message GreetingResponse {
+  string message = 1;
+  int32 name_length = 2;
+}
+
+service GreetingService {
+  rpc SayHello (GreetingRequest) returns (GreetingResponse);
+}

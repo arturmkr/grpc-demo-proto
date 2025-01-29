@@ -1,0 +1,44 @@
+name: Generate gRPC Stubs
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Protobuf Compiler
+        run: |
+          sudo apt update
+          sudo apt install -y protobuf-compiler
+
+      - name: Install gRPC plugins
+        run: |
+          pip install grpcio-tools
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+
+      - name: Generate Python stubs
+        run: |
+          mkdir -p proto/generated/python
+          python -m grpc_tools.protoc -Iproto --python_out=proto/generated/python --grpc_python_out=proto/generated/python proto/greeting.proto
+
+      - name: Generate Java stubs
+        run: |
+          mkdir -p proto/generated/java
+          protoc --proto_path=proto --java_out=proto/generated/java --grpc-java_out=proto/generated/java proto/greeting.proto
+
+      - name: Commit and push generated code
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add proto/generated/
+          git commit -m "Auto-generated gRPC stubs"
+          git push
