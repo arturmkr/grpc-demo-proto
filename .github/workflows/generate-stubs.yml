@@ -14,26 +14,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Protobuf Compiler
-        run: |
-          sudo apt update
-          sudo apt install -y protobuf-compiler
+      - name: Setup Protobuf Compiler
+        uses: arduino/setup-protoc@v3
 
-      - name: Install gRPC plugins
+      - name: Generate gRPC code (Python + Java)
         run: |
-          pip install grpcio-tools
-          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
-          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          mkdir -p proto/generated/python proto/generated/java
 
-      - name: Generate Python stubs
-        run: |
-          mkdir -p proto/generated/python
-          python -m grpc_tools.protoc -Iproto --python_out=proto/generated/python --grpc_python_out=proto/generated/python proto/greeting.proto
+          protoc --proto_path=proto \
+                 --python_out=proto/generated/python \
+                 --grpc_python_out=proto/generated/python \
+                 proto/*.proto
 
-      - name: Generate Java stubs
-        run: |
-          mkdir -p proto/generated/java
-          protoc --proto_path=proto --java_out=proto/generated/java --grpc-java_out=proto/generated/java proto/greeting.proto
+          protoc --proto_path=proto \
+                 --java_out=proto/generated/java \
+                 --grpc-java_out=proto/generated/java \
+                 proto/*.proto
 
       - name: Commit and push generated code
         run: |
