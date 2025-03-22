@@ -22,8 +22,6 @@ jobs:
 
       - name: Install protoc (Protocol Buffers Compiler)
         uses: arduino/setup-protoc@v3
-        with:
-          version: '3.21.12'
 
       - name: Install Python gRPC plugin
         run: |
