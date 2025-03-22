@@ -19,11 +19,11 @@ jobs:
         with:
           version: "3.21.12"
 
-      - name: Setup Java (для protoc-gen-grpc-java)
+      - name: Set up Java
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '17'  # или 11, если хочешь меньше
+          java-version: '21'
 
       - name: Install Python gRPC plugin
         run: |
