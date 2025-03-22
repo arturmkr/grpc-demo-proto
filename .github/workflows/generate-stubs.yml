@@ -29,11 +29,7 @@ jobs:
           python3 -m pip install grpcio-tools
 
       - name: Install protoc-gen-grpc-java
-        run: |
-          curl -Lo /usr/local/bin/protoc-gen-grpc-java.jar https://repo1.maven.org/maven2/io/grpc/protoc-gen-grpc-java/1.56.0/protoc-gen-grpc-java-1.56.0.jar
-          echo '#!/bin/bash' > /usr/local/bin/protoc-gen-grpc-java
-          echo 'exec java -jar /usr/local/bin/protoc-gen-grpc-java.jar "$@"' >> /usr/local/bin/protoc-gen-grpc-java
-          chmod +x /usr/local/bin/protoc-gen-grpc-java
+        uses: JacobSMoller/setup-protoc-grpc-java
 
       - name: Generate Python gRPC code
         run: |
