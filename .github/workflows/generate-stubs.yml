@@ -7,34 +7,56 @@ on:
   workflow_dispatch:
 
 jobs:
-  generate:
+  generate-stubs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Protobuf Compiler
+      - name: Setup Protoc
         uses: arduino/setup-protoc@v3
+        with:
+          version: "3.21.12"
 
-      - name: Generate gRPC code (Python + Java)
+      - name: Setup Java (для protoc-gen-grpc-java)
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'  # или 11, если хочешь меньше
+
+      - name: Install Python gRPC plugin
         run: |
-          mkdir -p proto/generated/python proto/generated/java
+          python3 -m pip install --upgrade pip
+          python3 -m pip install grpcio-tools
 
-          protoc --proto_path=proto \
-                 --python_out=proto/generated/python \
-                 --grpc_python_out=proto/generated/python \
-                 proto/*.proto
+      - name: Install protoc-gen-grpc-java plugin
+        run: |
+          curl -Lo /usr/local/bin/protoc-gen-grpc-java https://repo1.maven.org/maven2/io/grpc/protoc-gen-grpc-java/1.56.0/protoc-gen-grpc-java-1.56.0-linux-x86_64
+          chmod +x /usr/local/bin/protoc-gen-grpc-java
 
-          protoc --proto_path=proto \
-                 --java_out=proto/generated/java \
-                 --grpc-java_out=proto/generated/java \
-                 proto/*.proto
+      - name: Generate Python gRPC code
+        run: |
+          mkdir -p proto/generated/python
+          python3 -m grpc_tools.protoc \
+            -Iproto \
+            --python_out=proto/generated/python \
+            --grpc_python_out=proto/generated/python \
+            proto/*.proto
+
+      - name: Generate Java gRPC code
+        run: |
+          mkdir -p proto/generated/java
+          protoc \
+            --proto_path=proto \
+            --java_out=proto/generated/java \
+            --grpc-java_out=proto/generated/java \
+            proto/*.proto
 
       - name: Commit and push generated code
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add proto/generated/
-          git commit -m "Auto-generated gRPC stubs"
+          git diff --quiet && echo "No changes to commit" || git commit -m "Auto-generated gRPC stubs"
           git push
