@@ -14,22 +14,28 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Setup Protoc
-        uses: arduino/setup-protoc@v3
-
-      - name: Set up Java
+      - name: Setup Java (для grpc-java плагина)
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '17'
+
+      - name: Install protoc (Protocol Buffers Compiler)
+        uses: arduino/setup-protoc@v3
+        with:
+          version: '3.21.12'
 
       - name: Install Python gRPC plugin
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install grpcio-tools
+          python3 -m pip install grpcio grpcio-tools
 
-      - name: Install protoc-gen-grpc-java
-        uses: JacobSMoller/setup-protoc-grpc-java
+      - name: Download protoc-gen-grpc-java JAR
+        run: |
+          curl -sSL https://repo1.maven.org/maven2/io/grpc/protoc-gen-grpc-java/1.56.0/protoc-gen-grpc-java-1.56.0.jar -o /usr/local/bin/protoc-gen-grpc-java.jar
+          echo '#!/bin/bash' | tee /usr/local/bin/protoc-gen-grpc-java
+          echo 'exec java -jar /usr/local/bin/protoc-gen-grpc-java.jar "$@"' >> /usr/local/bin/protoc-gen-grpc-java
+          chmod +x /usr/local/bin/protoc-gen-grpc-java
 
       - name: Generate Python gRPC code
         run: |
